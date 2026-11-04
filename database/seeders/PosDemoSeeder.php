@@ -16,10 +16,11 @@ class PosDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        // Aman dijalankan ulang: tidak mereset akun, stok, atau transaksi yang sudah ada.
+        // Khusus demo: kata sandi tiga akun demo diatur ulang setiap kali seeder dijalankan.
         $shop = Branch::query()->sole();
         foreach ([['Pengelola', 'pengelola@pos.test', 'pengelola'], ['Kasir Satu', 'kasir1@pos.test', 'kasir'], ['Kasir Dua', 'kasir2@pos.test', 'kasir']] as [$name,$email,$role]) {
-            User::firstOrCreate(['email' => $email], ['name' => $name, 'password' => env('POS_DEMO_PASSWORD', 'GantiSandiDemo2026!'), 'role' => $role, 'branch_id' => $shop->id, 'is_active' => true]);
+            $user = User::firstOrCreate(['email' => $email], ['name' => $name, 'password' => 'password', 'role' => $role, 'branch_id' => $shop->id, 'is_active' => true]);
+            $user->update(['password' => 'password']);
         }
         $manager = User::where('email', 'pengelola@pos.test')->firstOrFail();
         $category = Category::firstOrCreate(['code' => 'SEMBAKO'], ['name' => 'Sembako', 'is_active' => true]);
@@ -58,7 +59,7 @@ class PosDemoSeeder extends Seeder
                 $service->post($purchase, $manager->id);
             });
         }
-        $this->command?->info('Demo: pengelola@pos.test, kasir1@pos.test, kasir2@pos.test | Sandi mengikuti POS_DEMO_PASSWORD pada .env (khusus demo).');
+        $this->command?->info('Demo: pengelola@pos.test, kasir1@pos.test, kasir2@pos.test | Sandi: password (khusus demo).');
     }
 }
 

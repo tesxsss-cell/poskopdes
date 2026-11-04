@@ -1,0 +1,110 @@
+name: Deploy Incremental via SSH ke Hostinger
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-poskopdes-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build Frontend, Sync File, dan Run Migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Ambil source code terbaru dari GitHub
+        uses: actions/checkout@v4
+
+      - name: Siapkan Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Instal dependensi frontend
+        run: npm ci
+
+      - name: Build Tailwind CSS dan JavaScript
+        run: npm run build
+
+      - name: Validasi file build Vite
+        run: test -f public/build/manifest.json
+
+      - name: Bersihkan penanda Vite local development
+        run: rm -f public/hot
+
+      - name: Sinkronisasi file via rsync (SSH Password)
+        run: |
+          sudo apt-get update && sudo apt-get install -y sshpass
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT || '65002' }}" \
+            --exclude='/.git/' \
+            --exclude='/.github/' \
+            --exclude='*.log' \
+            --exclude='.DS_Store' \
+            --exclude='.env*' \
+            --exclude='.codex/' \
+            --exclude='.cursor/' \
+            --exclude='.idea/' \
+            --exclude='.vscode/' \
+            --exclude='auth.json' \
+            --exclude='/node_modules/' \
+            --exclude='/vendor/' \
+            --exclude='/public/hot' \
+            --exclude='/public/storage' \
+            --exclude='/storage/*.key' \
+            --exclude='/storage/logs/' \
+            --exclude='/storage/framework/cache/' \
+            --exclude='/storage/framework/sessions/' \
+            --exclude='/storage/framework/views/' \
+            --exclude='/storage/app/' \
+            --exclude='/bootstrap/cache/' \
+            --exclude='/tests/' \
+            ./ ${{ secrets.SSH_USERNAME || 'u497441114' }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_APP_PATH }}
+
+      - name: Eksekusi Migration Database dan Cache Laravel
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME || 'u497441114' }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || '65002' }}
+          command_timeout: 10m
+          script: |
+            set -e
+
+            APP_DIR="${{ secrets.SSH_APP_PATH }}"
+
+            if [ -z "$APP_DIR" ] || [ ! -f "$APP_DIR/artisan" ]; then
+              echo "ERROR: Path SSH_APP_PATH kosong atau file artisan tidak ditemukan di: $APP_DIR"
+              exit 1
+            fi
+
+            echo "Beralih ke direktori: $APP_DIR"
+            cd "$APP_DIR"
+
+            mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
+
+            if [ ! -d "vendor" ]; then
+              echo "Menjalankan composer install..."
+              composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+            fi
+
+            echo "Memeriksa dan menjalankan database migration..."
+            php artisan migrate --force --no-interaction
+
+            php artisan storage:link || true
+
+            echo "Membersihkan dan memperbarui cache Laravel..."
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
