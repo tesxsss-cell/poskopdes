@@ -41,10 +41,11 @@ jobs:
       - name: Bersihkan penanda Vite local development
         run: rm -f public/hot
 
+      # Sinkronisasi hanya file yang berubah/baru tanpa menghapus file di hosting (--delete dihilangkan)
       - name: Sinkronisasi file via rsync (SSH Password)
         run: |
           sudo apt-get update && sudo apt-get install -y sshpass
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
             -e "ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT || '65002' }}" \
             --exclude='/.git/' \
             --exclude='/.github/' \
