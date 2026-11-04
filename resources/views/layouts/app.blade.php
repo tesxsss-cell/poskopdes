@@ -9,7 +9,7 @@
     <title>@yield('title', 'POS Koperasi Desa') · {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/responsive-tables.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cashier-pages.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/cashier-pages.css') }}?v=shift-cash-4">
 </head>
 
 <body class="kopdes-app">

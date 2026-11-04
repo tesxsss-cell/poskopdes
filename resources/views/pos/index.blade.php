@@ -138,22 +138,32 @@
                                 <p>Hitung uang fisik sebelum menutup.</p>
                             </div><x-icon name="clock" />
                         </div>
-                        <p class="my-2 text-sm">Kas awal: Rp
-                            {{ number_format((float) $shift->opening_cash, 0, ',', '.') }}<br>Kas sistem: <span
-                                id="shift-expected">Rp {{ number_format((float) $shift->expected_cash, 0, ',', '.') }}</span>
-                        </p>
+                        <div class="shift-cash-summary" aria-label="Ringkasan kas shift">
+                            <div><span>Kas awal</span><strong>Rp {{ number_format((float) $shift->opening_cash, 2, ',', '.') }}</strong></div>
+                            <div><span>Uang tunai diterima</span><strong id="shift-received">Rp {{ number_format($cashSummary['cash_received'], 2, ',', '.') }}</strong></div>
+                            <div><span>Kembalian diberikan</span><strong id="shift-change">− Rp {{ number_format($cashSummary['cash_change'], 2, ',', '.') }}</strong></div>
+                            <div class="shift-cash-total"><span>Kas menurut sistem</span><strong id="shift-expected">Rp {{ number_format($cashSummary['expected_cash'], 2, ',', '.') }}</strong></div>
+                        </div>
+                        <p class="shift-cash-help">Kas awal + tunai diterima − kembalian selama shift ini. Pembayaran non-tunai tidak masuk laci.</p>
                         <a href="{{ route('pos.index') }}" class="text-sm text-brand-700 underline"
                             id="refresh-shift">Segarkan data shift</a>
                         <form id="close-shift-form" method="POST" action="{{ route('pos.shift.close') }}"
-                            class="mt-3 space-y-3">@csrf
+                            class="mt-3 space-y-3" novalidate>@csrf
                             <label class="block">Kas fisik saat tutup (Rp)<input id="actual-cash" name="actual_cash" class="field" data-rupiah
                                     type="text" inputmode="decimal" autocomplete="off" maxlength="18"
                                     pattern="[0-9]+(\.[0-9]{3})*(,[0-9]{1,2})?"
+                                    aria-describedby="shift-cash-note shift-difference shift-form-message"
                                     title="Masukkan rupiah, gunakan koma untuk desimal" placeholder="Contoh: 50.000"
                                     value="{{ old('actual_cash') !== null ? number_format((float) old('actual_cash'), 2, ',', '.') : '' }}" required></label>
+                            <button type="button" id="use-expected-cash" class="btn-secondary w-full" disabled>Gunakan nominal kas sistem</button>
+                            <p id="shift-cash-note" class="shift-cash-note">Pilihan cepat hanya acuan. Tetap hitung dan sesuaikan dengan uang fisik di laci.</p>
+                            <p id="shift-difference" class="shift-difference" aria-live="polite">Masukkan kas fisik untuk melihat selisih.</p>
                             <label class="block">Catatan selisih<input name="note" class="field"
-                                    maxlength="255"></label><button class="btn-secondary w-full"><x-icon
+                                    maxlength="255"></label>
+                            <p id="shift-form-message" class="shift-form-message" role="alert" hidden></p>
+                            <button type="submit" id="close-shift-button" class="btn-secondary w-full" disabled><x-icon
                                     name="clock" /> Tutup shift</button>
+                            <noscript>Aktifkan JavaScript untuk menutup shift.</noscript>
                         </form>
                         <p class="mt-3 text-xs text-slate-500">Setiap akun memakai laci kas terpisah. Pastikan seluruh
                             transaksi sudah dikonfirmasi server sebelum shift ditutup.</p>
@@ -170,6 +180,7 @@
                         <span>Kas fisik yang dicatat</span>
                         <strong id="close-shift-cash"></strong>
                     </div>
+                    <p id="close-shift-comparison" class="shift-confirm-hint"></p>
                     <p class="shift-confirm-hint">Setelah ditutup, Anda perlu membuka shift baru untuk melayani transaksi.</p>
                     <div class="shift-confirm-actions">
                         <button type="button" id="close-shift-cancel" class="btn-secondary">Batal</button>
@@ -222,12 +233,13 @@
                 history: @json(route('pos.history')),
                 checkout: @json(route('pos.checkout')),
                 shift: {{ $shift->id }},
+                cashSummary: @json($cashSummary),
                 csrf: @json(csrf_token())
             };
         </script>
         <script src="{{ asset('js/barcode-decoder.js') }}"></script>
         <script src="{{ asset('js/barcode-scanner.js') }}"></script>
-        <script src="{{ asset('js/pos-online.js') }}?v=shift-dialog-cart-3"></script>
+        <script src="{{ asset('js/pos-online.js') }}?v=shift-cash-dialog-4"></script>
     @endpush
 @endif
 

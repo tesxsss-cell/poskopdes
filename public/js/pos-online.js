@@ -361,8 +361,7 @@
             link.rel = 'noopener';
             link.className = 'font-semibold text-brand-700 underline';
             byId('pos-message').append(link);
-            const cash = byId('shift-expected');
-            if (cash) cash.textContent = money(data.expected_cash);
+            updateCashSummary(data);
             const history = document.createElement('a');
             history.href = cfg.history;
             history.className = 'text-link';
@@ -417,26 +416,80 @@
     let closingShift = false;
     const closeShiftForm = byId('close-shift-form');
     const closeShiftDialog = byId('close-shift-dialog');
+    const actualCash = byId('actual-cash');
+    let expectedCash = Number(cfg.cashSummary.expected_cash);
+
+    function shiftMessage(text) {
+        const feedback = byId('shift-form-message');
+        feedback.textContent = text;
+        feedback.hidden = !text;
+    }
+
+    function physicalCash() {
+        if (!actualCash.value || !/^[0-9]+(\.[0-9]{3})*(,[0-9]{1,2})?$/.test(actualCash.value)) return null;
+        const value = Number(window.ShiftRupiah.raw(actualCash));
+        return Number.isFinite(value) && value <= 999999999999 ? value : null;
+    }
+
+    function updateDifference() {
+        const actual = physicalCash();
+        const difference = byId('shift-difference');
+        if (actual === null) {
+            difference.textContent = 'Masukkan kas fisik untuk melihat selisih.';
+            return;
+        }
+        const cents = Math.round(actual * 100) - Math.round(expectedCash * 100);
+        difference.textContent = cents === 0 ? 'Selisih: Rp 0 (sesuai)' :
+            'Selisih: ' + (cents > 0 ? '+' : '−') + money(Math.abs(cents) / 100) + (cents > 0 ? ' (lebih)' : ' (kurang)');
+    }
+
+    function updateCashSummary(summary) {
+        expectedCash = Number(summary.expected_cash);
+        byId('shift-expected').textContent = money(expectedCash);
+        byId('shift-received').textContent = money(summary.cash_received);
+        byId('shift-change').textContent = '− ' + money(summary.cash_change);
+        updateDifference();
+    }
+
+    actualCash.addEventListener('input', () => {
+        shiftMessage('');
+        actualCash.removeAttribute('aria-invalid');
+        updateDifference();
+    });
+    byId('use-expected-cash').addEventListener('click', () => {
+        if (pending || busy || closingShift) return;
+        actualCash.value = expectedCash.toFixed(2).replace('.', ',');
+        actualCash.dispatchEvent(new Event('input', { bubbles: true }));
+        actualCash.focus();
+    });
+    updateDifference();
     closeShiftForm.addEventListener('submit', event => {
         event.preventDefault();
         if (closingShift) return;
         if (pending || busy || searching || cart.length) {
-            message('Selesaikan pencarian dan status transaksi, lalu kosongkan keranjang sebelum tutup shift.');
+            shiftMessage('Selesaikan pencarian dan status transaksi, lalu kosongkan keranjang sebelum menutup shift.');
             return;
         }
-        if (!window.ShiftRupiah || typeof closeShiftDialog.showModal !== 'function') {
-            message('Dialog konfirmasi belum tersedia. Perbarui browser lalu coba lagi.');
+        if (!window.ShiftRupiah || !closeShiftDialog || typeof closeShiftDialog.showModal !== 'function') {
+            shiftMessage('Dialog konfirmasi belum tersedia. Perbarui browser lalu coba lagi.');
             return;
         }
-        if (!closeShiftForm.reportValidity()) return;
-        byId('close-shift-cash').textContent = 'Rp ' + byId('actual-cash').value;
+        if (physicalCash() === null) {
+            shiftMessage('Masukkan kas fisik yang valid, mulai dari Rp 0 hingga Rp 999.999.999.999.');
+            actualCash.setAttribute('aria-invalid', 'true');
+            actualCash.focus();
+            return;
+        }
+        shiftMessage('');
+        byId('close-shift-cash').textContent = 'Rp ' + actualCash.value;
+        byId('close-shift-comparison').textContent = 'Kas sistem: ' + money(expectedCash) + '. ' + byId('shift-difference').textContent;
         closingShift = true;
         try {
             closeShiftDialog.showModal();
             byId('close-shift-cancel').focus();
         } catch (error) {
             closingShift = false;
-            message('Dialog konfirmasi gagal dibuka. Muat ulang halaman dan coba lagi.');
+            shiftMessage('Dialog konfirmasi gagal dibuka. Muat ulang halaman dan coba lagi.');
         }
     });
     closeShiftDialog.addEventListener('close', () => {
@@ -444,16 +497,11 @@
     });
     byId('close-shift-cancel').addEventListener('click', () => closeShiftDialog.close());
     byId('close-shift-confirm').addEventListener('click', () => {
-        if (pending || busy || searching || cart.length) {
+        if (pending || busy || searching || cart.length || physicalCash() === null) {
             closeShiftDialog.close();
-            message('Selesaikan pencarian dan status transaksi, lalu kosongkan keranjang sebelum tutup shift.');
+            shiftMessage('Periksa kas fisik dan pastikan seluruh transaksi selesai sebelum menutup shift.');
             return;
         }
-        if (!closeShiftForm.reportValidity()) {
-            closeShiftDialog.close();
-            return;
-        }
-        const actualCash = byId('actual-cash');
         const formattedCash = actualCash.value;
         actualCash.value = window.ShiftRupiah.raw(actualCash);
         byId('close-shift-confirm').disabled = true;
@@ -463,7 +511,7 @@
             actualCash.value = formattedCash;
             byId('close-shift-confirm').disabled = false;
             closeShiftDialog.close();
-            message('Shift gagal ditutup. Coba lagi.');
+            shiftMessage('Shift gagal ditutup. Coba lagi.');
         }
     });
     document.addEventListener('click', event => {

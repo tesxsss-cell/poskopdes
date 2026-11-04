@@ -20,3 +20,11 @@
 .shift-confirm-content .shift-confirm-hint{font-size:13px}
 .shift-confirm-actions{display:flex;gap:10px;margin-top:24px}.shift-confirm-actions button{flex:1;min-height:48px;justify-content:center}
 @media(max-width:480px){.shift-confirm-dialog{width:calc(100% - 24px);max-width:calc(100% - 24px);max-height:calc(100dvh - 24px);border-radius:16px}.shift-confirm-content{padding:20px}.shift-confirm-actions{flex-direction:column-reverse}.shift-confirm-actions button{width:100%}}
+
+/* Ringkasan dan perbandingan kas shift */
+.shift-cash-summary{display:grid;gap:10px;margin:16px 24px 8px;padding:16px;border:1px solid #dce8df;border-radius:12px;background:#f4f8f5}
+.shift-cash-summary>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px}.shift-cash-summary span{color:#526b5a}.shift-cash-summary strong{text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.shift-cash-summary .shift-cash-total{padding-top:10px;border-top:1px solid #dce8df;font-weight:700}.shift-cash-summary .shift-cash-total span{color:#203b2c}
+.shift-panel .shift-cash-help{margin:8px 24px 12px;color:#526b5a;font-size:13px;line-height:1.5}
+.shift-cash-note{font-size:13px;line-height:1.5;color:#526b5a}.shift-difference{padding:10px 12px;border-radius:8px;background:#f4f8f5;font-size:14px;font-weight:600;line-height:1.5}.shift-form-message:not([hidden]){padding:10px 12px;border:1px solid #f2c6be;border-radius:8px;background:#fff3f0;color:#963d2e;font-size:14px;line-height:1.5}
+@media(max-width:480px){.shift-cash-summary{margin-inline:16px}.shift-panel .shift-cash-help{margin-inline:16px}.shift-cash-summary>div{flex-wrap:wrap}}

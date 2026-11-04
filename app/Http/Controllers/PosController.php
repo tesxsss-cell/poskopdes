@@ -22,7 +22,10 @@ class PosController extends Controller
 
     public function index(Request $request)
     {
-        return response()->view('pos.index', ['shift' => $request->user()->openShift()])->header('Cache-Control', 'max-age=0, no-store, private');
+        $shift = $request->user()->openShift();
+        $cashSummary = $shift ? $this->cashSummary($shift) : null;
+
+        return response()->view('pos.index', compact('shift', 'cashSummary'))->header('Cache-Control', 'max-age=0, no-store, private');
     }
 
     public function products(Request $request)
@@ -123,11 +126,29 @@ class PosController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
+        $cashSummary = $this->cashSummary($sale->shift->fresh());
+
         return response()->json(['message' => 'Transaksi tersimpan di server.', 'invoice_no' => $sale->invoice_no,
-            'total' => (float) $sale->total, 'change_amount' => (float) $sale->change_amount, 'expected_cash' => (float) $sale->shift->fresh()->expected_cash,
+            'total' => (float) $sale->total, 'change_amount' => (float) $sale->change_amount,
+            'expected_cash' => $cashSummary['expected_cash'], 'cash_received' => $cashSummary['cash_received'],
+            'cash_change' => $cashSummary['cash_change'],
             'sold_at_label' => $sale->sold_at->format('d/m H:i'),
             'sale_status' => $sale->status->value,
             'receipt_url' => route('pos.receipt', $sale)]);
+    }
+
+    /** Rekap tunai untuk shift ini, termasuk shift yang melewati pergantian hari. */
+    private function cashSummary(CashierShift $shift): array
+    {
+        $totals = $shift->sales()->where('status', 'selesai')->where('payment_method', 'tunai')
+            ->selectRaw('COALESCE(SUM(paid_amount), 0) AS cash_received, COALESCE(SUM(change_amount), 0) AS cash_change')
+            ->first();
+
+        return [
+            'cash_received' => (float) $totals->cash_received,
+            'cash_change' => (float) $totals->cash_change,
+            'expected_cash' => (float) $shift->expected_cash,
+        ];
     }
 
     public function receipt(Request $request, Sale $sale)
