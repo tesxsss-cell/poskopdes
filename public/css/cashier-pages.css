@@ -6,3 +6,17 @@
 @media print{.barcode-dialog,.barcode-filter,.cashier-history-filter,.barcode-open{display:none!important}}
 
 .registration-scanner .bcs-status{display:none!important}
+
+/* Konfirmasi penutupan shift */
+.shift-confirm-dialog{width:min(440px,calc(100% - 32px));max-width:calc(100% - 32px);max-height:calc(100dvh - 32px);margin:auto;padding:0;border:1px solid #dce8df;border-radius:20px;background:#fff;color:#203b2c;box-shadow:0 24px 70px rgba(15,39,25,.24);overflow-y:auto;overscroll-behavior:contain}
+.shift-confirm-dialog::backdrop{background:rgba(15,39,25,.65)}
+.shift-confirm-content{padding:28px}
+.shift-confirm-icon{display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin-bottom:18px;border-radius:14px;background:#e7f4eb;color:#146c43}
+.shift-confirm-icon svg{width:24px;height:24px}
+.shift-confirm-content h2{font-size:22px;font-weight:700;line-height:1.25}
+.shift-confirm-content>p{margin-top:10px;color:#526b5a;font-size:14px;line-height:1.6}
+.shift-confirm-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:20px;padding:14px 16px;border:1px solid #dce8df;border-radius:12px;background:#f4f8f5;font-size:14px}
+.shift-confirm-summary span{color:#526b5a}.shift-confirm-summary strong{font-size:16px;overflow-wrap:anywhere}
+.shift-confirm-content .shift-confirm-hint{font-size:13px}
+.shift-confirm-actions{display:flex;gap:10px;margin-top:24px}.shift-confirm-actions button{flex:1;min-height:48px;justify-content:center}
+@media(max-width:480px){.shift-confirm-dialog{width:calc(100% - 24px);max-width:calc(100% - 24px);max-height:calc(100dvh - 24px);border-radius:16px}.shift-confirm-content{padding:20px}.shift-confirm-actions{flex-direction:column-reverse}.shift-confirm-actions button{width:100%}}
