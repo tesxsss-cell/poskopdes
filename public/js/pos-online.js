@@ -2,7 +2,8 @@
 (() => {
 'use strict';
 const cfg=window.POS_ONLINE_CONFIG, byId=id=>document.getElementById(id);
-let cart=[], pending=null, busy=false;
+let cart=[], pending=null, busy=false, lastBarcodeAddedAt=null;
+const barcodeCooldownMs=3000;
 const money=n=>'Rp '+Number(n).toLocaleString('id-ID',{minimumFractionDigits:0,maximumFractionDigits:2});
 function message(text){byId('pos-message').textContent=text;}
 function uuid(){if(crypto.randomUUID)return crypto.randomUUID();const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;return [...b].map((v,i)=>([4,6,8,10].includes(i)?'-':'')+v.toString(16).padStart(2,'0')).join('');}
@@ -25,9 +26,9 @@ function draw(){
  });byId('cart-total').textContent=money(total());byId('cart-count').textContent=cart.length+' barang';updateChange();lock(Boolean(pending));
 }
 function add(product){
- if(pending||busy)return;
- const old=cart.find(p=>p.id===product.id);if((old?.quantity||0)+1>product.stock){message('Stok tidak cukup.');return;}
- if(old)old.quantity++;else cart.push({...product,quantity:1});draw();byId('product-search').value='';byId('search-results').replaceChildren();byId('product-search').focus();
+ if(pending||busy)return false;
+ const old=cart.find(p=>p.id===product.id);if((old?.quantity||0)+1>product.stock){message('Stok tidak cukup.');return false;}
+ if(old)old.quantity++;else cart.push({...product,quantity:1});draw();byId('product-search').value='';byId('search-results').replaceChildren();byId('product-search').focus();return true;
 }
 let searching=false;
 async function search(term,page=1,targetId='search-results',choose=add,auto=true){
@@ -35,7 +36,14 @@ async function search(term,page=1,targetId='search-results',choose=add,auto=true
  if(!response.ok)throw new Error('Pencarian gagal. Periksa koneksi atau sesi login.');
  const result=await response.json(),data=result.data,target=byId(targetId);target.replaceChildren();
  const exact=data.find(p=>p.barcode===term||p.matched_barcode===term||p.sku===term);
- if(auto&&exact){choose(exact);return;}
+ if(auto&&exact){
+  const isBarcode=exact.barcode===term||exact.matched_barcode===term;
+  if(isBarcode&&lastBarcodeAddedAt!==null&&Date.now()-lastBarcodeAddedAt<barcodeCooldownMs){
+   byId('product-search').value='';message('Tunggu 3 detik setelah scan sebelumnya sebelum scan barcode lagi.');return;
+  }
+  if(choose(exact)&&isBarcode){lastBarcodeAddedAt=Date.now();message('Barcode ditambahkan. Tunggu 3 detik untuk scan berikutnya.');}
+  return;
+ }
  if(!data.length){target.textContent='Barang tidak ditemukan. Tambahkan barcode jika kode belum terdaftar.';if(auto){const link=document.createElement('a');const url=new URL(cfg.registerPage,location.origin);url.searchParams.set('barcode',term);link.href=url;link.className='text-link';link.textContent=' Buka halaman Daftarkan barcode';target.append(link);}return;}
  const list=document.createElement('div');list.className='search-result-list';target.append(list);
  data.forEach(p=>{const button=document.createElement('button');button.type='button';button.textContent=p.name+' · '+money(p.sell_price)+' · stok '+p.stock+' '+p.unit;button.disabled=auto&&p.stock<=0;button.addEventListener('click',()=>{if(!pending)choose(p);});list.append(button);});
@@ -45,11 +53,28 @@ async function search(term,page=1,targetId='search-results',choose=add,auto=true
 byId('search-form').addEventListener('submit',async event=>{event.preventDefault();if(pending||busy||searching)return;const term=byId('product-search').value.trim();if(!term)return;searching=true;try{await search(term);}catch(e){message(e.message);}finally{searching=false;}});
 byId('cart-toggle').onclick=()=>{const detail=byId('cart-detail');detail.hidden=!detail.hidden;byId('cart-toggle').setAttribute('aria-expanded',String(!detail.hidden));byId('cart-toggle-label').textContent=detail.hidden?'Lihat detail':'Tutup detail';};
 byId('clear-cart').onclick=()=>{if(pending||busy)return;if(cart.length&&confirm('Kosongkan seluruh keranjang?')){cart=[];draw();}};
-function updateChange(){const amount=Number(byId('paid-amount').value||0);byId('change-preview').textContent=byId('payment-method').value==='tunai'?money(Math.max(0,amount-total())):'Rp 0 (non-tunai)';}
-byId('paid-amount').addEventListener('input',updateChange);
+function paidAmount(){return Number(byId('paid-amount').value.replace(/\D/g,'')||0);}
+function updateChange(){const amount=paidAmount();byId('change-preview').textContent=byId('payment-method').value==='tunai'?money(Math.max(0,amount-total())):'Rp 0 (non-tunai)';}
+const paidInput=byId('paid-amount');
+paidInput.addEventListener('input',()=>{
+ const cursor=paidInput.selectionStart??paidInput.value.length;
+ const digitsBefore=paidInput.value.slice(0,cursor).replace(/\D/g,'').length;
+ const digits=paidInput.value.replace(/\D/g,'').slice(0,12);
+ paidInput.value=digits.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+ let position=0,count=0;
+ while(position<paidInput.value.length&&count<digitsBefore){if(/\d/.test(paidInput.value[position]))count++;position++;}
+ paidInput.setSelectionRange(position,position);
+ updateChange();
+});
+document.querySelectorAll('[data-paid-amount]').forEach(button=>button.addEventListener('click',()=>{
+ if(pending||busy)return;
+ paidInput.value=button.dataset.paidAmount;
+ paidInput.dispatchEvent(new Event('input',{bubbles:true}));
+ paidInput.focus();
+}));
 // Same embedded camera scanner as the first ZIP; decoding is local, saving stays online.
 let camera=null;
-const detected=code=>{if(pending||busy)return;byId('product-search').value=String(code).trim();byId('search-form').requestSubmit();};
+const detected=code=>{if(pending||busy||searching)return;byId('product-search').value=String(code).trim();byId('search-form').requestSubmit();};
 byId('camera-start').onclick=async()=>{if(pending||busy)return;const start=byId('camera-start');start.disabled=true;try{if(!window.BarcodeScanner)throw new Error('Pemindai belum tersedia. Gunakan scanner USB atau pencarian.');camera??=BarcodeScanner.pasang({kontainer:'scanner-kasir',sekaliPakai:false,onDeteksi:detected,onStatus:t=>byId('scanner-status').textContent=t});await camera.mulai();byId('scanner-state').textContent='Aktif';byId('camera-stop').disabled=false;}catch(e){byId('scanner-status').textContent=e.message;byId('scanner-state').textContent='Perlu izin';start.disabled=false;}};
 byId('camera-stop').onclick=()=>{camera?.hentikan();byId('scanner-state').textContent='Nonaktif';byId('scanner-status').textContent='Kamera berhenti. Scanner USB tetap dapat digunakan.';byId('camera-stop').disabled=true;byId('camera-start').disabled=Boolean(pending);};
 // USB scan works in the search input; do not intercept payment/quantity typing.
@@ -81,7 +106,7 @@ byId('checkout-form').addEventListener('submit',event=>{
  event.preventDefault();if(busy||pending)return;
  if(!navigator.onLine){message('Tidak dapat menyimpan: jaringan terputus. Tidak ada mode offline.');return;}
  if(!cart.length){message('Keranjang kosong.');return;}
- const method=byId('payment-method').value,paid=Number(byId('paid-amount').value||0);
+ const method=byId('payment-method').value,paid=paidAmount();
  if(method==='tunai'&&paid<total()){message('Pembayaran tunai kurang.');return;}
  if(method!=='tunai'&&!byId('payment-confirmed').checked){message('Periksa pembayaran non-tunai dahulu.');return;}
  pending={request_id:uuid(),cashier_shift_id:cfg.shift,customer_name:byId('customer-name').value||null,payment_method:method,paid_amount:method==='tunai'?paid:null,note:byId('sale-note').value||null,items:cart.map(p=>({product_id:p.id,quantity:p.quantity,expected_price:p.sell_price}))};

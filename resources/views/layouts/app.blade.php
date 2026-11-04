@@ -63,9 +63,7 @@
                             <h1>@yield('title', 'Dasbor')</h1>
                         </div>
                     </div>
-                    <div class="topbar-meta"><span class="today-label">{{ now()->translatedFormat('d M Y') }}</span><span
-                            id="network-status" class="connection-tag"><span
-                                class="status-dot"></span><span>Online</span></span></div>
+                    <div class="topbar-meta"><span class="today-label">{{ now()->translatedFormat('d M Y') }}</span></div>
                 </header>
                 <main id="main-content" class="app-page" tabindex="-1">
                     @if (session('status'))

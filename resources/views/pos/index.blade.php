@@ -103,8 +103,18 @@
                                     <option value="transfer">Transfer (verifikasi manual)</option>
                                     <option value="debit">Debit (verifikasi manual)</option>
                                 </select></label>
-                            <label id="cash-field" class="block">Uang diterima (Rp)<input id="paid-amount" class="field"
-                                    type="number" min="0" max="999999999999" step="0.01" required></label>
+                            <div id="cash-field" class="block">
+                                <label for="paid-amount" class="block">Uang diterima (Rp)</label>
+                                <div class="flex flex-wrap gap-2 my-2" aria-label="Pilihan cepat uang diterima">
+                                    <button type="button" class="btn-secondary" data-paid-amount="50000">Rp 50.000</button>
+                                    <button type="button" class="btn-secondary" data-paid-amount="100000">Rp 100.000</button>
+                                    <button type="button" class="btn-secondary" data-paid-amount="500000">Rp 500.000</button>
+                                    <button type="button" class="btn-secondary" data-paid-amount="1000000">Rp 1.000.000</button>
+                                </div>
+                                <input id="paid-amount" class="field" type="text" inputmode="numeric"
+                                    autocomplete="off" maxlength="15" pattern="[0-9]+(\.[0-9]{3})*"
+                                    title="Masukkan jumlah dalam rupiah tanpa desimal" placeholder="Contoh: 50.000" required>
+                            </div>
                             <label id="noncash-field" class="hidden text-sm"><input id="payment-confirmed"
                                     type="checkbox"> Pembayaran non-tunai sudah benar-benar diterima dan diperiksa.</label>
                             <label class="block">Catatan (opsional)<input id="sale-note" class="field"
@@ -163,7 +173,8 @@
         </script>
         <script src="{{ asset('js/barcode-decoder.js') }}"></script>
         <script src="{{ asset('js/barcode-scanner.js') }}"></script>
-        <script src="{{ asset('js/pos-online.js') }}?v=scan-jeda-3-detik"></script>
+        <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
+        <script src="{{ asset('js/pos-online.js') }}?v=tutup-shift-sweetalert-1"></script>
     @endpush
 @endif
 
