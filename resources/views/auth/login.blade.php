@@ -4,7 +4,7 @@
     <div class="login-shell">
         <section class="login-story"><a class="brand-lockup" href="{{ route('login') }}"><span>Kopdes<span
                         class="brand-subtitle">Point of Sale</span></span></a>
-           
+            <div class="login-story-content">
                 <h1>Toko tertata.<br>Pelayanan lebih mudah.</h1>
                 <p>Kelola barang, layani pelanggan, dan pantau usaha koperasi dalam satu tempat.</p>
                 <div class="login-feature"><x-icon name="box" />
