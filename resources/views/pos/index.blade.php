@@ -18,9 +18,20 @@
                 <h2 class="text-lg font-semibold">Mulai shift Anda</h2>
                 <p class="my-3 text-sm text-slate-500">Masukkan uang awal yang benar-benar ada di laci. Sistem tidak membuka
                     shift otomatis.</p>
-                <form action="{{ route('pos.shift.open') }}" method="POST">@csrf<label>Kas awal (Rp)<input class="field"
+                <form action="{{ route('pos.shift.open') }}" method="POST">
+                    @csrf
+                    <p class="text-sm">Pilih nominal cepat atau masukkan jumlah sendiri:</p>
+                    <div class="flex flex-wrap gap-2 my-3" aria-label="Pilihan cepat kas awal">
+                        <button type="button" class="btn-secondary" data-opening-cash="500000">Rp 500.000</button>
+                        <button type="button" class="btn-secondary" data-opening-cash="5000000">Rp 5.000.000</button>
+                        <button type="button" class="btn-secondary" data-opening-cash="10000000">Rp 10.000.000</button>
+                        <button type="button" class="btn-secondary" data-opening-cash="15000000">Rp 15.000.000</button>
+                    </div>
+                    <label>Kas awal (Rp)<input id="opening-cash" class="field"
                             name="opening_cash" type="number" min="0" max="999999999999" step="0.01"
-                            value="0" required></label><button class="btn-primary mt-4">Buka shift</button></form>
+                            value="{{ old('opening_cash', 0) }}" required></label>
+                    <button class="btn-primary mt-4">Buka shift</button>
+                </form>
             </section>
         @else
             <div class="pos-layout pos-single-column">
@@ -37,7 +48,7 @@
                                 kamera</button><button type="button" id="camera-stop" class="btn-secondary"
                                 disabled>Nonaktifkan</button></div>
                         <p class="scanner-help">Kamera HP memerlukan HTTPS dan izin kamera. Pencarian manual dan scanner USB
-                            tetap tersedia.</p>
+                            tetap tersedia. Setelah barcode ditambahkan, tunggu 3 detik sebelum scan berikutnya.</p>
                     </div>
                     <div class="panel-heading">
                         <div>
@@ -152,6 +163,21 @@
         </script>
         <script src="{{ asset('js/barcode-decoder.js') }}"></script>
         <script src="{{ asset('js/barcode-scanner.js') }}"></script>
-        <script src="{{ asset('js/pos-online.js') }}"></script>
+        <script src="{{ asset('js/pos-online.js') }}?v=scan-jeda-3-detik"></script>
+    @endpush
+@endif
+
+@if (!$shift)
+    @push('scripts')
+        <script>
+            document.querySelectorAll('[data-opening-cash]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const input = document.getElementById('opening-cash');
+                    input.value = button.dataset.openingCash;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.focus();
+                });
+            });
+        </script>
     @endpush
 @endif
