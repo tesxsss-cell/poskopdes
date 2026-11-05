@@ -10,10 +10,11 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/responsive-tables.css') }}">
     <link rel="stylesheet" href="{{ asset('css/cashier-pages.css') }}?v=shift-cash-4">
-    <link rel="stylesheet" href="{{ asset('css/complete-report.css') }}?v=1">
+    <link rel="stylesheet" href="{{ asset('css/complete-report.css') }}?v=rekap-2">
+    <link rel="stylesheet" href="{{ asset('css/manager-actions.css') }}?v=1">
 </head>
 
-<body class="kopdes-app">
+<body class="kopdes-app {{ auth()->check() && !auth()->user()->isKasir() ? 'manager-ui' : '' }}">
     <a class="skip-link" href="#main-content">Lewati ke konten</a>
     @auth
         @php($me = auth()->user())
@@ -34,7 +35,7 @@
                                     name="{{ $icon }}" /><span>{{ $label }}</span></a>
                         @endforeach
                     @else
-                        @foreach ([['Ringkasan', [['dashboard', 'Dasbor', 'home'], ['sales.index', 'Penjualan', 'receipt']]], ['Kelola usaha', [['products.index', 'Barang', 'box'], ['categories.index', 'Kategori', 'layers'], ['suppliers.index', 'Pemasok', 'truck'], ['purchases.index', 'Penerimaan barang', 'clipboard'], ['users.index', 'Akun kasir', 'users']]], ['Laporan', [['reports.complete', 'Laporan lengkap', 'chart'], ['reports.stock', 'Persediaan', 'box'], ['reports.stock-card', 'Kartu stok', 'clipboard'], ['reports.shift', 'Rekap shift', 'clock']]]] as [$heading, $items])
+                        @foreach ([['Ringkasan', [['dashboard', 'Dasbor', 'home'], ['sales.index', 'Penjualan', 'receipt']]], ['Kelola usaha', [['products.index', 'Barang', 'box'], ['categories.index', 'Kategori', 'layers'], ['suppliers.index', 'Pemasok', 'truck'], ['purchases.index', 'Penerimaan barang', 'clipboard'], ['users.index', 'Akun kasir', 'users']]], ['Laporan', [['reports.complete', 'Rekap laporan', 'chart'], ['reports.stock', 'Persediaan', 'box'], ['reports.stock-card', 'Kartu stok', 'clipboard'], ['reports.shift', 'Rekap shift', 'clock']]]] as [$heading, $items])
                             <p class="nav-heading">{{ $heading }}</p>
                             @foreach ($items as [$target, $label, $icon])
                             @continue(!\Illuminate\Support\Facades\Route::has($target))
@@ -97,7 +98,7 @@
                                 name="{{ $icon }}" /><span>{{ $label }}</span></a>
                     @endforeach
                 @else
-                    @foreach ([['dashboard', 'Beranda', 'home'], ['products.index', 'Barang', 'box'], ['sales.index', 'Penjualan', 'receipt'], ['reports.complete', 'Laporan', 'chart']] as [$target, $label, $icon])
+                    @foreach ([['dashboard', 'Beranda', 'home'], ['products.index', 'Barang', 'box'], ['sales.index', 'Penjualan', 'receipt'], ['reports.complete', 'Rekap', 'chart']] as [$target, $label, $icon])
                             @continue(!\Illuminate\Support\Facades\Route::has($target))
                         <a href="{{ route($target) }}" class="{{ request()->routeIs($target) ? 'is-active' : '' }}"><x-icon
                                 name="{{ $icon }}" /><span>{{ $label }}</span></a>

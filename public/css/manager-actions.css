@@ -1,0 +1,31 @@
+/* Action controls for the manager workspace, not sidebar navigation or cashier controls. */
+.manager-ui .app-page .manager-action,
+.manager-ui .app-page a.text-slate-700.hover\:underline,
+.manager-ui .app-page a.text-slate-600.hover\:underline,
+.manager-ui .app-page a.ml-3.underline,
+.manager-ui .app-page a.text-brand-700.underline,
+.manager-ui .app-page .panel-link,
+.manager-ui .app-page .text-link,
+.manager-ui .app-page button.text-red-600,
+.manager-ui .app-page button[data-hapus],
+.manager-ui .app-page a[class*="bg-brand-700"],
+.manager-ui .app-page button[class*="bg-brand-700"],
+.manager-ui .app-page button[class*="bg-slate-200"] {
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:9px 14px;
+  border:1px solid #c8d9ce;border-radius:8px;background:#fff;color:#24543b;
+  font-size:14px;font-weight:650;line-height:1.25;text-decoration:none;cursor:pointer;
+}
+.manager-ui .app-page a[class*="bg-brand-700"],
+.manager-ui .app-page button[class*="bg-brand-700"]{background:#187246;border-color:#187246;color:#fff}
+.manager-ui .app-page button.text-red-600,
+.manager-ui .app-page button[data-hapus],
+.manager-ui .app-page .manager-action-danger {background:#fff6f5;border-color:#e6b5b0;color:#a32f25}
+.manager-ui .app-page .manager-action:hover,.manager-ui .app-page a.text-slate-700.hover\:underline:hover,
+.manager-ui .app-page a.text-slate-600.hover\:underline:hover,.manager-ui .app-page a.ml-3.underline:hover,
+.manager-ui .app-page a.text-brand-700.underline:hover,.manager-ui .app-page .panel-link:hover,
+.manager-ui .app-page .text-link:hover,.manager-ui .app-page button[data-hapus]:hover{background:#eef7f1;text-decoration:none}
+.manager-ui .app-page button.text-red-600:hover,.manager-ui .app-page .manager-action-danger:hover,
+.manager-ui .app-page button[data-hapus]:hover{background:#fce9e7}
+.manager-ui .app-page a[class*="bg-brand-700"]:hover,.manager-ui .app-page button[class*="bg-brand-700"]:hover{background:#125b37}
+.manager-ui .app-page :is(a,button):focus-visible {outline:3px solid #429d6d;outline-offset:2px}
+.manager-ui .app-page button:disabled {opacity:.55;cursor:not-allowed}

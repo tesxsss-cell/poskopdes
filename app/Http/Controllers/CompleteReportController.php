@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OperatingExpense;
+use App\Support\TablePage;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -31,6 +32,7 @@ class CompleteReportController extends Controller
         }
         $print = ($data['cetak'] ?? null) === '1';
         $summary = $reports->summary($branchId, $from, $to);
+        $series = $reports->dailySeries($branchId, $from, $to);
         $expenseQuery = OperatingExpense::query()->where('branch_id', $branchId)->whereDate('expense_date', '>=', $from)->whereDate('expense_date', '<=', $to);
         $expenseTotal = (float) (clone $expenseQuery)->sum('amount');
         $expenseCategories = (clone $expenseQuery)->select('category')->selectRaw('SUM(amount) AS total')
@@ -73,7 +75,7 @@ class CompleteReportController extends Controller
 
         return view('reports.complete', [
             'from' => $from, 'to' => $to, 'month' => $data['bulan'] ?? '', 'print' => $print,
-            'summary' => $summary, 'series' => $reports->dailySeries($branchId, $from, $to), 'expenseTotal' => $expenseTotal, 'expenseCategories' => $expenseCategories,
+            'summary' => $summary, 'series' => $print ? $series : TablePage::make($series, 'sales_page'), 'expenseTotal' => $expenseTotal, 'expenseCategories' => $expenseCategories,
             'expenses' => $print ? $expenseRows->get() : $expenseRows->paginate(10, ['*'], 'expense_page')->withQueryString(),
             'products' => $print ? $products->get() : $products->paginate(10, ['*'], 'product_page')->withQueryString(),
             'movementRows' => $print ? $movementRows->get() : $movementRows->paginate(10, ['*'], 'movement_page')->withQueryString(),

@@ -92,7 +92,7 @@
                     class="w-32 rounded border border-slate-300 px-2 py-1.5 text-right">
             </td>
             <td data-label="Subtotal" class="py-2 text-right" data-subtotal>Rp 0</td>
-            <td data-label="Aksi" class="py-2 text-right"><button type="button" data-hapus
+            <td data-label="Aksi" class="py-2 text-right"><button type="button" data-hapus aria-label="Hapus baris barang"
                     class="text-red-600">&times;</button></td>
         </tr>
     </template>
