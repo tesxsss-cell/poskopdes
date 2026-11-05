@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CompleteReportController;
+use App\Http\Controllers\OperatingExpenseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
@@ -48,6 +50,12 @@ Route::middleware(['auth', 'active'])->group(function () {
         }
         if (config('pos.increment', 4) >= 4) {
         Route::prefix('laporan')->name('reports.')->group(function () {
+            Route::get('lengkap', CompleteReportController::class)->name('complete');
+            Route::get('biaya/tambah', [OperatingExpenseController::class, 'create'])->name('expenses.create');
+            Route::post('biaya', [OperatingExpenseController::class, 'store'])->name('expenses.store');
+            Route::get('biaya/{expense}/ubah', [OperatingExpenseController::class, 'edit'])->name('expenses.edit');
+            Route::put('biaya/{expense}', [OperatingExpenseController::class, 'update'])->name('expenses.update');
+            Route::delete('biaya/{expense}', [OperatingExpenseController::class, 'destroy'])->name('expenses.destroy');
             Route::get('harian', [ReportController::class, 'daily'])->name('daily');
             Route::get('bulanan', [ReportController::class, 'monthly'])->name('monthly');
             Route::get('laba-kotor', [ReportController::class, 'profit'])->name('profit');

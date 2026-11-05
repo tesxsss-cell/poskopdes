@@ -61,7 +61,7 @@
                 </div>
             </div>
             <div class="quick-actions">
-                @foreach ([['products.create', 'Tambah barang', 'Lengkapi katalog toko', 'box'], ['purchases.create', 'Catat penerimaan', 'Perbarui stok dan HPP', 'truck'], ['sales.index', 'Riwayat penjualan', 'Periksa riwayat dan cetak struk', 'receipt'], ['reports.daily', 'Laporan penjualan', 'Lihat hasil usaha per periode', 'chart']] as [$route, $title, $desc, $icon])
+                @foreach ([['products.create', 'Tambah barang', 'Lengkapi katalog toko', 'box'], ['purchases.create', 'Catat penerimaan', 'Perbarui stok dan HPP', 'truck'], ['sales.index', 'Riwayat penjualan', 'Periksa riwayat dan cetak struk', 'receipt'], ['reports.complete', 'Laporan lengkap', 'Pantau penjualan, barang dan biaya', 'chart']] as [$route, $title, $desc, $icon])
                     <a href="{{ route($route) }}"><span class="action-icon"><x-icon
                                 name="{{ $icon }}" /></span><span><strong>{{ $title }}</strong><small>{{ $desc }}</small></span><x-icon
                             name="arrow" /></a>
