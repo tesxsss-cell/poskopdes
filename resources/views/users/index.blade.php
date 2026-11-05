@@ -53,10 +53,10 @@
                                 <a href="{{ route('users.edit', $user) }}" class="text-slate-700 hover:underline">Ubah</a>
                                 @if ($user->is_active)
                                     <form method="POST" action="{{ route('users.destroy', $user) }}"
-                                          onsubmit="return confirm('Nonaktifkan akun ini?')">
+                                          data-admin-confirm data-title="Nonaktifkan akun?" data-message="Akun yang dinonaktifkan tidak dapat digunakan. Riwayat tetap tersimpan dan shift terbuka harus ditutup terlebih dahulu." data-item="{{ $user->name }} · {{ $user->email }}" data-confirm-label="Ya, nonaktifkan" data-tone="danger">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="text-red-600 hover:underline">Nonaktifkan</button>
+                                        <button type="button" data-admin-confirm-trigger class="text-red-600 hover:underline">Nonaktifkan</button>
                                     </form>
                                 @endif
                             </div>

@@ -11,9 +11,9 @@
         <div class="flex items-center gap-2">
             @if ($purchase->isDraft())
                 <form method="POST" action="{{ route('purchases.post', $purchase) }}"
-                      onsubmit="return confirm('Posting dokumen ini? Stok akan bertambah dan HPP rata-rata terbentuk.')">
+                      data-admin-confirm data-title="Posting penerimaan?" data-message="Stok akan bertambah dan HPP rata-rata diperbarui setelah dokumen diposting." data-item="{{ $purchase->code }}" data-confirm-label="Ya, posting" data-tone="primary">
                     @csrf
-                    <button class="rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800">Posting ke stok</button>
+                    <button type="button" data-admin-confirm-trigger class="rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800">Posting ke stok</button>
                 </form>
             @endif
             <a href="{{ route('purchases.index') }}" class="text-sm text-slate-600 hover:underline">Kembali</a>

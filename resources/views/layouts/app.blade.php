@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ asset('css/cashier-pages.css') }}?v=shift-cash-4">
     <link rel="stylesheet" href="{{ asset('css/complete-report.css') }}?v=rekap-2">
     <link rel="stylesheet" href="{{ asset('css/manager-actions.css') }}?v=1">
+    <link rel="stylesheet" href="{{ asset('css/shell-controls.css') }}?v=1">
 </head>
 
 <body class="kopdes-app {{ auth()->check() && !auth()->user()->isKasir() ? 'manager-ui' : '' }}">
@@ -22,7 +23,7 @@
             <aside id="app-sidebar" class="app-sidebar no-print" aria-label="Menu utama">
                 <div class="sidebar-brand"><a href="{{ route('dashboard') }}" class="brand-lockup"><span>Kopdes<span
                                 class="brand-subtitle">Point of Sale</span></span></a><button type="button"
-                        data-sidebar-close class="icon-button drawer-close" aria-label="Tutup menu"><x-icon
+                        data-sidebar-close class="icon-button drawer-close" aria-label="Tutup menu" aria-controls="app-sidebar"><x-icon
                             name="x" /></button></div>
                 <div class="shop-label"><span class="status-dot"></span><span>{{ $me->branch->name }}</span></div>
                 <nav class="sidebar-navigation">
@@ -105,11 +106,25 @@
                     @endforeach
                 @endif
             </nav>
+            @unless ($me->isKasir())
+                <dialog class="admin-confirm-dialog no-print" id="admin-confirm-dialog" aria-labelledby="admin-confirm-title" aria-describedby="admin-confirm-message">
+                    <div class="admin-confirm-icon" aria-hidden="true"><x-icon name="alert" /></div>
+                    <h2 id="admin-confirm-title"></h2>
+                    <p id="admin-confirm-message"></p>
+                    <p class="admin-confirm-item" id="admin-confirm-item"></p>
+                    <div class="admin-confirm-actions">
+                        <button type="button" class="admin-confirm-cancel" data-admin-cancel>Batal</button>
+                        <button type="button" class="admin-confirm-submit" data-admin-submit></button>
+                    </div>
+                </dialog>
+                <p class="admin-confirm-error no-print" role="alert" hidden data-admin-confirm-error></p>
+            @endunless
         </div>
     @else
         <main id="main-content" tabindex="-1">@yield('content')</main>
     @endauth
-    <script src="{{ asset('js/app-shell.js') }}"></script>
+    <script src="{{ asset('js/app-shell.js') }}?v=sidebar-2"></script>
+    <script src="{{ asset('js/admin-confirm.js') }}?v=1"></script>
     <script src="{{ asset('js/table-pagination.js') }}"></script>
     @stack('scripts')
 </body>

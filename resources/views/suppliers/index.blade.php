@@ -50,10 +50,10 @@
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ route('suppliers.edit', $supplier) }}" class="text-slate-700 hover:underline">Ubah</a>
                                 <form method="POST" action="{{ route('suppliers.destroy', $supplier) }}"
-                                      onsubmit="return confirm('Hapus pemasok ini?')">
+                                      data-admin-confirm data-title="Hapus pemasok?" data-message="Pemasok yang sudah memiliki riwayat pembelian tidak dapat dihapus. Anda dapat menonaktifkannya." data-item="{{ $supplier->name }}" data-confirm-label="Ya, hapus" data-tone="danger">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="text-red-600 hover:underline">Hapus</button>
+                                    <button type="button" data-admin-confirm-trigger class="text-red-600 hover:underline">Hapus</button>
                                 </form>
                             </div>
                         </td>

@@ -65,10 +65,10 @@
                                 <a href="{{ route('products.edit', $product) }}"
                                     class="text-slate-700 hover:underline">Ubah</a>
                                 <form method="POST" action="{{ route('products.destroy', $product) }}"
-                                    onsubmit="return confirm('Arsipkan barang ini?')">
+                                    data-admin-confirm data-title="Arsipkan barang?" data-message="Barang dengan stok tersisa tidak dapat diarsipkan. Riwayat penjualannya tetap tersimpan." data-item="{{ $product->name }} · {{ $product->sku }}" data-confirm-label="Ya, arsipkan" data-tone="danger">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="text-red-600 hover:underline">Arsip</button>
+                                    <button type="button" data-admin-confirm-trigger class="text-red-600 hover:underline">Arsip</button>
                                 </form>
                             </div>
                         </td>

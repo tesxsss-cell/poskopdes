@@ -1,24 +1,61 @@
 (() => {
 'use strict';
-const sidebar=document.getElementById('app-sidebar'),overlay=document.getElementById('app-sidebar-overlay'),workspace=document.getElementById('app-workspace'),opener=document.querySelector('[data-sidebar-open]');
-let lastFocus=null;
-function toggle(open){
- if(!sidebar||!overlay)return;
- if(open)lastFocus=document.activeElement;
- sidebar.classList.toggle('is-open',open);overlay.hidden=!open;document.body.classList.toggle('drawer-visible',open);opener?.setAttribute('aria-expanded',String(open));
- if(workspace)workspace.inert=open;
- if(open)sidebar.querySelector('[data-sidebar-close]')?.focus();else if(lastFocus?.isConnected)lastFocus.focus();
-}
-opener?.addEventListener('click',()=>toggle(true));document.querySelector('[data-sidebar-close]')?.addEventListener('click',()=>toggle(false));overlay?.addEventListener('click',()=>toggle(false));
-addEventListener('keydown',event=>{
- if(!sidebar?.classList.contains('is-open'))return;
- if(event.key==='Escape'){toggle(false);return;}
- if(event.key==='Tab'){
-  const links=[...sidebar.querySelectorAll('a[href],button,input,select')].filter(el=>!el.disabled&&el.getClientRects().length);const first=links[0],last=links.at(-1);
-  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+const sidebar = document.getElementById('app-sidebar');
+const overlay = document.getElementById('app-sidebar-overlay');
+const workspace = document.getElementById('app-workspace');
+const shortcuts = document.querySelector('.mobile-shortcuts');
+const opener = document.querySelector('[data-sidebar-open]');
+const closer = document.querySelector('[data-sidebar-close]');
+const desktop = matchMedia('(min-width:1024px)');
+let desktopOpen = true;
+let mobileOpen = false;
+let lastFocus = null;
+try { desktopOpen = localStorage.getItem('kopdes-sidebar-desktop') !== 'closed'; } catch (_) {}
+function applySidebar(restoreFocus = false) {
+ if (!sidebar || !overlay || !opener) return;
+ const mobile = !desktop.matches;
+ const visible = mobile ? mobileOpen : desktopOpen;
+ sidebar.classList.toggle('is-open', mobile && visible);
+ document.body.classList.toggle('sidebar-collapsed', !mobile && !visible);
+ document.body.classList.toggle('drawer-visible', mobile && visible);
+ overlay.hidden = !(mobile && visible);
+ if (workspace) workspace.inert = mobile && visible;
+ if (shortcuts) shortcuts.inert = mobile && visible;
+ sidebar.inert = !visible;
+ opener.setAttribute('aria-expanded', String(visible));
+ opener.setAttribute('aria-label', visible ? 'Tutup menu' : 'Buka menu');
+ if (restoreFocus && !visible) {
+  const target = mobile && lastFocus?.isConnected ? lastFocus : opener;
+  target.focus();
  }
+}
+function toggleSidebar(open) {
+ if (desktop.matches) {
+  desktopOpen = open;
+  try { localStorage.setItem('kopdes-sidebar-desktop', open ? 'open' : 'closed'); } catch (_) {}
+ } else {
+  if (open) lastFocus = document.activeElement;
+  mobileOpen = open;
+ }
+ applySidebar(!open);
+ if (open && !desktop.matches) closer?.focus();
+}
+opener?.addEventListener('click', () => toggleSidebar(desktop.matches ? !desktopOpen : !mobileOpen));
+closer?.addEventListener('click', () => toggleSidebar(false));
+overlay?.addEventListener('click', () => toggleSidebar(false));
+addEventListener('keydown', event => {
+ if (!sidebar) return;
+ if (event.key === 'Escape' && (!desktop.matches ? mobileOpen : desktopOpen && sidebar.contains(document.activeElement))) {
+  toggleSidebar(false); return;
+ }
+ if (desktop.matches || !mobileOpen || event.key !== 'Tab') return;
+ const links = [...sidebar.querySelectorAll('a[href],button,input,select')].filter(el => !el.disabled && el.getClientRects().length);
+ const first = links[0], last = links.at(-1);
+ if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+ else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
 });
-matchMedia('(min-width:1024px)').addEventListener('change',event=>{if(event.matches)toggle(false);});
+desktop.addEventListener('change', () => { mobileOpen = false; applySidebar(); });
+applySidebar();
 const label=document.getElementById('network-status');
 function status(){if(!label)return;label.classList.toggle('is-disconnected',!navigator.onLine);label.lastElementChild.textContent=navigator.onLine?'Online':'Terputus';label.title=navigator.onLine?'Aplikasi memerlukan koneksi ke server.':'Tidak ada mode offline. Transaksi belum dapat dikonfirmasi server.';}
 addEventListener('online',status);addEventListener('offline',status);status();

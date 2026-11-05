@@ -38,10 +38,10 @@
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ route('categories.edit', $category) }}" class="text-slate-700 hover:underline">Ubah</a>
                                 <form method="POST" action="{{ route('categories.destroy', $category) }}"
-                                      onsubmit="return confirm('Hapus kategori ini?')">
+                                      data-admin-confirm data-title="Hapus kategori?" data-message="Kategori yang masih digunakan oleh barang tidak dapat dihapus." data-item="{{ $category->name }}" data-confirm-label="Ya, hapus" data-tone="danger">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="text-red-600 hover:underline">Hapus</button>
+                                    <button type="button" data-admin-confirm-trigger class="text-red-600 hover:underline">Hapus</button>
                                 </form>
                             </div>
                         </td>
