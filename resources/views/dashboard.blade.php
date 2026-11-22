@@ -50,8 +50,11 @@
                         <p>Belum ada barang aktif yang mencapai stok minimum.</p>
                     </div>
                 @endforelse
-            </div><a class="panel-link" href="{{ route('reports.stock') }}">Lihat seluruh persediaan <x-icon
-                    name="arrow" /></a>
+            </div>
+            <div style="padding: 16px 24px; text-align: center;">
+                <a class="panel-link" href="{{ route('reports.stock') }}">Lihat seluruh persediaan <x-icon
+                        name="arrow" /></a>
+            </div>
         </section>
         <section class="panel">
             <div class="panel-heading">
