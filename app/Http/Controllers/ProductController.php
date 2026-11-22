@@ -33,6 +33,33 @@ class ProductController extends Controller
         ]);
     }
 
+    public function archived(Request $request): View
+    {
+        $branchId = $request->user()->branch_id;
+
+        $products = Product::onlyTrashed()
+            ->with(['category', 'stocks' => fn ($q) => $branchId ? $q->where('branch_id', $branchId) : $q])
+            ->when($request->filled('q'), fn ($q) => $q->search($request->string('q')->toString()))
+            ->when($request->filled('kategori'), fn ($q) => $q->where('category_id', $request->integer('kategori')))
+            ->orderBy('name')
+            ->orderBy('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('products.archived', [
+            'products' => $products,
+            'categories' => Category::query()->orderBy('name')->get(),
+        ]);
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+        $product->restore();
+
+        return redirect()->route('products.archived')->with('status', 'Barang berhasil dikembalikan dari arsip.');
+    }
+
     public function create(): View
     {
         return view('products.form', [

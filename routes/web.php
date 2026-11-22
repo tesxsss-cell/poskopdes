@@ -39,6 +39,8 @@ Route::middleware(['auth', 'active'])->group(function () {
         if (config('pos.increment', 4) >= 3) {
         Route::get('penjualan', [PosController::class, 'sales'])->name('sales.index');
         }
+        Route::get('barang/arsip', [ProductController::class, 'archived'])->name('products.archived');
+        Route::patch('barang/arsip/{id}/pulihkan', [ProductController::class, 'restore'])->whereNumber('id')->name('products.restore');
         Route::resource('barang', ProductController::class)->parameters(['barang' => 'product'])->names('products')->except('show');
         Route::resource('kategori', CategoryController::class)->parameters(['kategori' => 'category'])->names('categories')->except('show');
         Route::resource('pemasok', SupplierController::class)->parameters(['pemasok' => 'supplier'])->names('suppliers')->except('show');
